@@ -32,7 +32,7 @@ class CommitAt
   end
 
   def active_at? date
-    since.to_date <= date && date <= till.to_date
+    @dates.find{|d| d.year == date.year && d.month == date.month}
   end
 end
 
@@ -77,8 +77,9 @@ WORKING_DIR = ARGV.first
 project = Project.new(WORKING_DIR)
 project.analyze!
 
+puts ['date', 'average age'].join("\t")
 (project.since.to_date..project.till.to_date).select{|date| date.day == 1}.each{|date|
   active_contributors = project.contributors.select{|c| c.active_at?(date)}
   average = active_contributors.length > 0 ? active_contributors.map{|c| c.age_at(date)}.reduce(0){|a,b| a + b } / active_contributors.length.to_f / (date - project.since.to_date) * 100 : 0
-  puts [date, average].join("\t")
+  puts [date, average, active_contributors.sort_by{|c| c.age}.reverse.map{|c| c.name}].flatten.join("\t")
 }
